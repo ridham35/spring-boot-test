@@ -16,23 +16,23 @@ public class SearchServiceImpl implements SearchService {
     RestTemplate restTemplate;
 
     private Character[] list = new Character[15];
-
     public Character[] getList() {
         return list;
     }
 
     @Override
     public Character searchCharacter(String character_name) {
-
         for(Character temp : list) {
             if(temp!=null && character_name.equalsIgnoreCase(temp.getName())) {
-                isArrayFull();
+                if (!isArrayFull()) {
+                    return temp;
+                }
+                removeLeastRecentlyUsedValue();
                 return temp;
             }
         }
 
-        List<Character> newList = callAPIs();
-        return null;
+        callAPIs(character_name);
     }
 
     public boolean isArrayFull() {
@@ -49,44 +49,43 @@ public class SearchServiceImpl implements SearchService {
     public void removeExpiredValue() {
         for(Character temp : list) {
             if((Calendar.getInstance().getTimeInMillis() -
-                    temp.getLastSearched()) == 1000) {
+                    temp.getLastSearched()) >= 10000) {
                 temp = null;
             }
         }
     }
 
+    @Override
     public void removeLeastRecentlyUsedValue() {
-//        Arrays.sort(list);
-//        for(Character temp : list) {
-//            if((Calendar.getInstance().getTimeInMillis() -
-//                    temp.getLastSearched()) == 1000) {
-//                temp = null;
-//            }
-//        }
+        Arrays.sort(list, new Comparator<Character>() {
+            @Override
+            public int compare(Character c1, Character c2) {
+                return c1.getLastSearched().compareTo(c2.getLastSearched());
+            }
+        });
+        list[14] = null;
     }
 
-
-    public List<Character> callAPIs() {
-
+    @Override
+    public void callAPIs(String character_name) {
         List<Character> characterList = new ArrayList<Character>();
-
-//        RestTemplate restTemplate = new RestTemplate();
 
         ResponseObj responseObj1 = restTemplate.getForObject("http://www.mocky.io/v2/5ecfd5dc3200006200e3d64b", ResponseObj.class);
 //        ResponseObj responseObj2 = restTemplate.getForObject("", ResponseObj.class);
 //        ResponseObj responseObj3 = restTemplate.getForObject("", ResponseObj.class);
-
         for (ResponseCharacter tempCharacter: responseObj1.getCharacter()){
-
             characterList.add(new Character(tempCharacter.getName(),
                     tempCharacter.getMax_power(), Calendar.getInstance().getTimeInMillis()));
         }
-//        System.out.println(Arrays.toString(characterList.toArray()));
+
+        if (isArrayFull()) {
+
+        }
         int i = 0;
         for (Character temp: characterList){
             list[i] = new Character(temp.getName(), temp.getMax_power(), temp.getLastSearched());
             i++;
         }
-        return null;
+        searchCharacter(character_name);
     }
 }

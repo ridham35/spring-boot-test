@@ -26,21 +26,43 @@ public class SearchServiceImpl implements SearchService {
 
         for(Character temp : list) {
             if(temp!=null && character_name.equalsIgnoreCase(temp.getName())) {
+                isArrayFull();
                 return temp;
             }
         }
+
         List<Character> newList = callAPIs();
         return null;
     }
 
+    public boolean isArrayFull() {
+        for(Character temp : list) {
+            if(temp==null) {
+                return false;
+            }
+        }
+        return true;
+    }
+
+
     @Override
     public void removeExpiredValue() {
         for(Character temp : list) {
-            if(Calendar.getInstance().getTimeInMillis() -
-                    temp.getLastSearched() == 1000) {
+            if((Calendar.getInstance().getTimeInMillis() -
+                    temp.getLastSearched()) == 1000) {
                 temp = null;
             }
         }
+    }
+
+    public void removeLeastRecentlyUsedValue() {
+//        Arrays.sort(list);
+//        for(Character temp : list) {
+//            if((Calendar.getInstance().getTimeInMillis() -
+//                    temp.getLastSearched()) == 1000) {
+//                temp = null;
+//            }
+//        }
     }
 
 

@@ -79,12 +79,7 @@ public class SearchServiceImpl implements SearchService {
             removeLowestPoweredHeros();
         }
 
-        // sort arraylist by power level
-//        characterList.sort(Comparator.comparing(Character::getMax_power));
-
         characterList.sort((o1, o2) -> (-1) * o1.getMax_power().compareTo(o2.getMax_power()));
-
-//        System.out.println(characterList);
 
         int i = 1;
         int j = spaceLeft();

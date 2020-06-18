@@ -16,6 +16,7 @@ public class SearchServiceImpl implements SearchService {
     RestTemplate restTemplate;
 
     private Character[] list = new Character[15];
+    boolean isListFull = false;
     public Character[] getList() {
         return list;
     }
@@ -24,7 +25,7 @@ public class SearchServiceImpl implements SearchService {
     public Character searchCharacter(String character_name) {
         for(Character temp : list) {
             if(temp!=null && character_name.equalsIgnoreCase(temp.getName())) {
-                if (!isArrayFull()) {
+                if (!isListFull) {
                     return temp;
                 }
                 removeLeastRecentlyUsedValue();
@@ -33,6 +34,12 @@ public class SearchServiceImpl implements SearchService {
         }
 
         callAPIs(character_name);
+        for(Character temp : list) {
+            if(character_name.equalsIgnoreCase(temp.getName())) {
+                return temp;
+            }
+        }
+        return null;
     }
 
     public boolean isArrayFull() {
@@ -44,26 +51,25 @@ public class SearchServiceImpl implements SearchService {
         return true;
     }
 
-
+    // This method will remove all characters which have been fetched more than 10 seconds
     @Override
     public void removeExpiredValue() {
+        int i = 0;
         for(Character temp : list) {
-            if((Calendar.getInstance().getTimeInMillis() -
+            if(temp!=null && (Calendar.getInstance().getTimeInMillis() -
                     temp.getLastSearched()) >= 10000) {
-                temp = null;
+                list[i] = null;
+                isListFull = false;
             }
+            i++;
         }
     }
 
     @Override
     public void removeLeastRecentlyUsedValue() {
-        Arrays.sort(list, new Comparator<Character>() {
-            @Override
-            public int compare(Character c1, Character c2) {
-                return c1.getLastSearched().compareTo(c2.getLastSearched());
-            }
-        });
+        Arrays.sort(list, Comparator.comparing(Character::getLastSearched));
         list[14] = null;
+        isListFull = false;
     }
 
     @Override
@@ -73,19 +79,35 @@ public class SearchServiceImpl implements SearchService {
         ResponseObj responseObj1 = restTemplate.getForObject("http://www.mocky.io/v2/5ecfd5dc3200006200e3d64b", ResponseObj.class);
 //        ResponseObj responseObj2 = restTemplate.getForObject("", ResponseObj.class);
 //        ResponseObj responseObj3 = restTemplate.getForObject("", ResponseObj.class);
+
+
         for (ResponseCharacter tempCharacter: responseObj1.getCharacter()){
             characterList.add(new Character(tempCharacter.getName(),
                     tempCharacter.getMax_power(), Calendar.getInstance().getTimeInMillis()));
         }
 
-        if (isArrayFull()) {
+        if (isListFull) {
+            removeLowestPoweredHeros();
+        }
 
-        }
         int i = 0;
+
         for (Character temp: characterList){
-            list[i] = new Character(temp.getName(), temp.getMax_power(), temp.getLastSearched());
-            i++;
+            if (character_name.equalsIgnoreCase(temp.getName())){
+                list[i] = temp;
+            }
+            else{
+                list[i] = new Character(temp.getName(), temp.getMax_power(), temp.getLastSearched());
+                i++;
+            }
         }
-        searchCharacter(character_name);
+//        searchCharacter(character_name);
+    }
+
+    private void removeLowestPoweredHeros() {
+        Arrays.sort(list, Comparator.comparing(Character::getMax_power));
+        list[14] = null;
+
+        isListFull = false;
     }
 }

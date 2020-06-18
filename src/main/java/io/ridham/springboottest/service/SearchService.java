@@ -12,5 +12,5 @@ public interface SearchService {
 
     void removeLeastRecentlyUsedValue();
 
-    List<Character> callAPIs();
+    void callAPIs(String character_name);
 }

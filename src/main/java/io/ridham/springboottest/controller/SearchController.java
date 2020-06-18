@@ -23,4 +23,9 @@ public class SearchController {
     public Character[] seeList() {
         return searchService.getList();
     }
+
+    @GetMapping(value = "/callapi")
+    public void callApi() {
+        searchService.callAPIs("vision");
+    }
 }

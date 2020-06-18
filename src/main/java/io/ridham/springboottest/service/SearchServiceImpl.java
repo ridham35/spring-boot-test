@@ -56,8 +56,8 @@ public class SearchServiceImpl implements SearchService {
 
         // call all 3 apis in parallel
         ResponseObj responseObj1 = restTemplate.getForObject(appProperties.getUri1(), ResponseObj.class);
-        ResponseObj responseObj2 = restTemplate.getForObject(appProperties.getUri1(), ResponseObj.class);
-        ResponseObj responseObj3 = restTemplate.getForObject(appProperties.getUri1(), ResponseObj.class);
+        ResponseObj responseObj2 = restTemplate.getForObject(appProperties.getUri2(), ResponseObj.class);
+        ResponseObj responseObj3 = restTemplate.getForObject(appProperties.getUri3(), ResponseObj.class);
 
         // extract character objects from result and save it to arraylist
         for (ResponseCharacter tempCharacter: responseObj1.getCharacter()){
@@ -73,20 +73,28 @@ public class SearchServiceImpl implements SearchService {
                     tempCharacter.getMax_power(), Calendar.getInstance().getTimeInMillis()));
         }
 
+//        System.out.println(characterList);
+
         if (spaceLeft() == 0) {
             removeLowestPoweredHeros();
         }
 
         // sort arraylist by power level
-        characterList.sort(Comparator.comparing(Character::getMax_power));
+//        characterList.sort(Comparator.comparing(Character::getMax_power));
+
+        characterList.sort((o1, o2) -> (-1) * o1.getMax_power().compareTo(o2.getMax_power()));
+
+//        System.out.println(characterList);
 
         int i = 1;
+        int j = spaceLeft();
         for (Character temp: characterList){
             if (character_name.equalsIgnoreCase(temp.getName())){
                 list[0] = temp;
             }
             else{
-                if(spaceLeft() <= i){
+                System.out.println(spaceLeft());
+                if(i < j){
                     list[i] = new Character(temp.getName(), temp.getMax_power(), temp.getLastSearched());
                     i++;
                 }
@@ -125,16 +133,11 @@ public class SearchServiceImpl implements SearchService {
     public void removeLeastRecentlyUsedValue() {
         Arrays.sort(list, Comparator.comparing(Character::getLastSearched));
         list[14] = null;
-//        isListFull = false;
     }
 
     // remove lowest powered heroes
     @Override
     public void removeLowestPoweredHeros() {
-//        Arrays.sort(list, Comparator.comparing(Character::getMax_power));
         list[14] = null;
-
-//        isListFull = false;
     }
-
 }
